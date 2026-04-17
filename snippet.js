@@ -35,7 +35,7 @@
 
   async function postConversion(slug) {
     console.log("[attribution] sending conversion", { slug });
-    const res = await fetch("/conversion", {
+    const res = await fetch("https://web-production-bdc8.up.railway.app/conversion", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ slug }),
@@ -47,8 +47,17 @@
     }
   }
 
-  function onCalendlyEventScheduled() {
-    console.log("[attribution] calendly.event_scheduled fired");
+  function onCalendlyPopupMessage(event) {
+    const origin = String(event.origin || "");
+    if (!origin.includes("calendly.com")) return;
+
+    const data = event.data;
+    if (!data || typeof data !== "object") return;
+
+    const calendlyEvent = data.event;
+    if (calendlyEvent !== "calendly.event_scheduled") return;
+
+    console.log("[attribution] calendly.event_scheduled fired (popup message)");
     const slug = getCookie(COOKIE_NAME);
     if (!slug) return;
     void postConversion(slug);
@@ -59,8 +68,8 @@
     // 2) If no `ref`, keep existing cookie (do nothing).
     setAttributionFromUrl();
 
-    // Listen for Calendly booking events.
-    window.addEventListener("calendly.event_scheduled", onCalendlyEventScheduled);
+    // Listen for Calendly popup widget booking events via postMessage.
+    window.addEventListener("message", onCalendlyPopupMessage);
   }
 
   if (document.readyState === "loading") {
