@@ -34,6 +34,7 @@
   }
 
   async function postConversion(slug) {
+    console.log("[attribution] sending conversion", { slug });
     const res = await fetch("/conversion", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -47,6 +48,7 @@
   }
 
   function onCalendlyEventScheduled() {
+    console.log("[attribution] calendly.event_scheduled fired");
     const slug = getCookie(COOKIE_NAME);
     if (!slug) return;
     void postConversion(slug);
