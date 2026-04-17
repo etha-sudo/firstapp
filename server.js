@@ -144,7 +144,16 @@ app.get('/:slug', (req, res) => {
   const source = req.get('referer') ?? null;
   clickStmt.run(slug, source, timestamp);
 
-  return res.redirect(link.destination);
+  let destination = link.destination;
+  try {
+    const url = new URL(destination);
+    url.searchParams.set('ref', slug);
+    destination = url.toString();
+  } catch {
+    // If destination isn't an absolute URL, fall back to original.
+  }
+
+  return res.redirect(destination);
 });
 
 const PORT = process.env.PORT || 3000;
